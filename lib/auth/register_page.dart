@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../home/home_page.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -9,37 +10,39 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final _auth = FirebaseAuth.instance;
 
   void register() async {
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      await _auth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      Navigator.pop(context);
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => HomePage()));
     } catch (e) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
+          .showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Registro')),
+      appBar: AppBar(title: Text("Registro")),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
                 controller: emailController,
-                decoration: InputDecoration(labelText: 'Correo')),
+                decoration: InputDecoration(labelText: "Correo")),
             TextField(
                 controller: passwordController,
-                decoration: InputDecoration(labelText: 'Contraseña'),
+                decoration: InputDecoration(labelText: "Contraseña"),
                 obscureText: true),
             SizedBox(height: 20),
-            ElevatedButton(onPressed: register, child: Text('Crear cuenta')),
+            ElevatedButton(onPressed: register, child: Text("Registrarme")),
           ],
         ),
       ),
