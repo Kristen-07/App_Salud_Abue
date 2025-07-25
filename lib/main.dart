@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'routes/app_routes.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -8,22 +7,38 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const TitaApp());
+  runApp(const MyApp());
 }
 
-class TitaApp extends StatelessWidget {
-  const TitaApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Tita App',
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/login',
-      routes: appRoutes,
       theme: ThemeData(
         primarySwatch: Colors.teal,
-        fontFamily: 'Roboto',
+      ),
+      home: const FirebaseCheckPage(),
+    );
+  }
+}
+
+class FirebaseCheckPage extends StatelessWidget {
+  const FirebaseCheckPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Conexión Firebase'),
+      ),
+      body: const Center(
+        child: Text(
+          '✅ Firebase conectado correctamente.',
+          style: TextStyle(fontSize: 18),
+        ),
       ),
     );
   }
