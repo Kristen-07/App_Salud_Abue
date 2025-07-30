@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'auth/login_page.dart';
+//import 'auth/login_page.dart'; // Asegúrate que esta ruta sea correcta según tus carpetas
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,29 +19,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Tita App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.teal,
       ),
-      home: const FirebaseCheckPage(),
-    );
-  }
-}
-
-class FirebaseCheckPage extends StatelessWidget {
-  const FirebaseCheckPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Conexión Firebase'),
-      ),
-      body: const Center(
-        child: Text(
-          '✅ Firebase conectado correctamente.',
-          style: TextStyle(fontSize: 18),
-        ),
-      ),
+      home: const LoginPage(), // Mostrar directamente tu login
     );
   }
 }
