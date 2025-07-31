@@ -1,9 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'register_page.dart'; // <-- Importa tu clase de registro aquí (ajusta ruta)
+import 'register_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _usuarioController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _iniciarSesion() async {
+    String usuario = _usuarioController.text.trim();
+    String contrasena = _passwordController.text.trim();
+
+    if (usuario.isEmpty || contrasena.isEmpty) {
+      _mostrarMensaje("Por favor llena todos los campos");
+      return;
+    }
+
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('usuarios')
+          .where('usuario', isEqualTo: usuario)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        var data = snapshot.docs.first.data() as Map<String, dynamic>;
+
+        // 🔧 Aquí estaba el problema (campo 'contraseña' con ñ)
+        if (data['contraseña'] == contrasena) {
+          _mostrarMensaje("Inicio de sesión exitoso ✅");
+          // Puedes redirigir a otra página aquí
+        } else {
+          _mostrarMensaje("Contraseña incorrecta ❌");
+        }
+      } else {
+        _mostrarMensaje("Usuario no encontrado ❌");
+      }
+    } catch (e) {
+      _mostrarMensaje("Error al iniciar sesión: $e");
+    }
+  }
+
+  void _mostrarMensaje(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje),
+        backgroundColor: Colors.black87,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,14 +83,27 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                _CustomInputField(label: 'Usuario'),
+
+                // Campo Usuario
+                _CustomInputField(
+                  label: 'Usuario',
+                  controller: _usuarioController,
+                ),
+
                 const SizedBox(height: 16),
-                _CustomInputField(label: 'Contraseña', obscureText: true),
+
+                // Campo Contraseña
+                _CustomInputField(
+                  label: 'Contraseña',
+                  controller: _passwordController,
+                  obscureText: true,
+                ),
+
                 const SizedBox(height: 32),
+
+                // Botón Iniciar Sesión
                 ElevatedButton(
-                  onPressed: () {
-                    // Lógica para iniciar sesión
-                  },
+                  onPressed: _iniciarSesion,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE8B7E4),
                     foregroundColor: const Color(0xFF2C3E50),
@@ -58,7 +122,7 @@ class LoginPage extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // --- BOTÓN PARA IR AL REGISTRO ---
+                // Botón para ir al registro
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -87,17 +151,20 @@ class LoginPage extends StatelessWidget {
 
 class _CustomInputField extends StatelessWidget {
   final String label;
+  final TextEditingController controller;
   final bool obscureText;
 
   const _CustomInputField({
     super.key,
     required this.label,
+    required this.controller,
     this.obscureText = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       obscureText: obscureText,
       style: GoogleFonts.poppins(),
       decoration: InputDecoration(

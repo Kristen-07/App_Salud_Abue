@@ -1,8 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-class RegisterPage extends StatelessWidget {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MaterialApp(home: RegisterPage()));
+}
+
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final _nombreController = TextEditingController();
+  final _correoController = TextEditingController();
+  final _usuarioController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  void _registrarUsuario() async {
+    // Validar que no haya campos vacíos
+    if (_nombreController.text.isEmpty ||
+        _correoController.text.isEmpty ||
+        _usuarioController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor llena todos los campos')),
+      );
+      return;
+    }
+
+    // Validar formato básico de correo
+    if (!_correoController.text.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Correo electrónico no válido')),
+      );
+      return;
+    }
+
+    try {
+      // Guardar datos en Firestore
+      await FirebaseFirestore.instance.collection('usuarios').add({
+        'nombre': _nombreController.text.trim(),
+        'correo': _correoController.text.trim(),
+        'usuario': _usuarioController.text.trim(),
+        'contraseña': _passwordController.text.trim(), // ⚠ Temporal
+        'fechaRegistro': Timestamp.now(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuario registrado exitosamente')),
+      );
+
+      // Limpiar campos
+      _nombreController.clear();
+      _correoController.clear();
+      _usuarioController.clear();
+      _passwordController.clear();
+    } catch (e) {
+      print('Error al registrar: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al registrar usuario')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,18 +96,29 @@ class RegisterPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                _CustomInputField(label: 'Nombre completo'),
+                _CustomInputField(
+                  controller: _nombreController,
+                  label: 'Nombre completo',
+                ),
                 const SizedBox(height: 16),
-                _CustomInputField(label: 'Correo electrónico'),
+                _CustomInputField(
+                  controller: _correoController,
+                  label: 'Correo electrónico',
+                ),
                 const SizedBox(height: 16),
-                _CustomInputField(label: 'Usuario'),
+                _CustomInputField(
+                  controller: _usuarioController,
+                  label: 'Usuario',
+                ),
                 const SizedBox(height: 16),
-                _CustomInputField(label: 'Contraseña', obscureText: true),
+                _CustomInputField(
+                  controller: _passwordController,
+                  label: 'Contraseña',
+                  obscureText: true,
+                ),
                 const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: () {
-                    // Lógica para registrar
-                  },
+                  onPressed: _registrarUsuario,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE8B7E4),
                     foregroundColor: const Color(0xFF2C3E50),
@@ -58,6 +134,19 @@ class RegisterPage extends StatelessWidget {
                     style: GoogleFonts.poppins(fontSize: 16),
                   ),
                 ),
+                TextButton(
+                  onPressed: () {
+                    // Aquí puedes poner navegación a login en el futuro
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    '¿Ya tienes cuenta? Inicia sesión',
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFFE8B7E4),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -68,11 +157,13 @@ class RegisterPage extends StatelessWidget {
 }
 
 class _CustomInputField extends StatelessWidget {
+  final TextEditingController controller;
   final String label;
   final bool obscureText;
 
   const _CustomInputField({
     super.key,
+    required this.controller,
     required this.label,
     this.obscureText = false,
   });
@@ -80,6 +171,7 @@ class _CustomInputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       obscureText: obscureText,
       style: GoogleFonts.poppins(),
       decoration: InputDecoration(
